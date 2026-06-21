@@ -52,4 +52,4 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 ## See also
 
-- [`SKILLS.md`](./SKILLS.md) — full LLM-facing instructions, rules, and testing checklist
+- [`SKILL.md`](./SKILL.md) — full LLM-facing instructions, rules, and testing checklist
