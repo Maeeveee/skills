@@ -106,7 +106,7 @@ export default {
       fontViewportUnit: 'vw',
       selectorBlackList: [],
       minPixelValue: 1,
-      mediaQuery: false,
+      mediaQuery: true,         // WAJIB TRUE untuk Tailwind v4 agar memproses di dalam @layer
       replace: true,
       exclude: [/node_modules/],
       landscape: false
@@ -166,6 +166,8 @@ Browser akan membacanya sebagai unit `vw` secara otomatis. Di layar 1920px, `500
 7. **`viewportWidth` HARUS Sama dengan Lebar Frame Figma.** Jika desainer membuat frame di 1440px, set `viewportWidth: 1440`. Jika di 1920px, set `viewportWidth: 1920`. Kesalahan nilai ini akan membuat seluruh proporsi meleset.
 
 8. **Hindari Penggunaan Unit `vh` untuk Tinggi.** Plugin ini secara default hanya mengonversi `px` ke `vw` (lebar). Jika Anda menulis `h-[1080px]` dan berharap tingginya proporsional terhadap tinggi layar, itu TIDAK akan terjadi — hasilnya tetap `vw` (berdasarkan lebar). Untuk elemen full-height, gunakan `h-screen`, `min-h-screen`, `h-full`, atau `flex-1`.
+
+9. **Wajib `mediaQuery: true` untuk Tailwind v4.** Tailwind v4 menggunakan Cascade Layers (`@layer`) yang secara internal dianggap sebagai "Media Query" oleh plugin ini. Jika `mediaQuery` dibiarkan `false` (default), plugin akan mengabaikan seluruh class CSS dari Tailwind. Aturan ini sangat krusial agar UI berhasil melakukan *scaling* di v4.
 
 ## Testing Checklist
 
