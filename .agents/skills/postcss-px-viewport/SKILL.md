@@ -77,7 +77,7 @@ export default {
       unitToConvert: 'px',
       viewportWidth: 1920,      // <- Lebar frame Figma (WAJIB SESUAIKAN)
       unitPrecision: 5,         // Jumlah desimal (misal: 10.12345vw)
-      propList: ['*'],          // Konversi semua properti CSS
+      propList: ['*', '!border*'], // Konversi semua properti CSS KECUALI border (ketebalan/radius)
       viewportUnit: 'vw',       // Unit hasil akhir
       fontViewportUnit: 'vw',   // Unit khusus font
       selectorBlackList: [],    // Class CSS yang TIDAK dikonversi (lihat Aturan Wajib #3)
@@ -101,7 +101,7 @@ export default {
       unitToConvert: 'px',
       viewportWidth: 1920,
       unitPrecision: 5,
-      propList: ['*'],
+      propList: ['*', '!border*'], // Konversi semua properti CSS KECUALI border (ketebalan/radius)
       viewportUnit: 'vw',
       fontViewportUnit: 'vw',
       selectorBlackList: [],
@@ -168,6 +168,11 @@ Browser akan membacanya sebagai unit `vw` secara otomatis. Di layar 1920px, `500
 8. **Hindari Penggunaan Unit `vh` untuk Tinggi.** Plugin ini secara default hanya mengonversi `px` ke `vw` (lebar). Jika Anda menulis `h-[1080px]` dan berharap tingginya proporsional terhadap tinggi layar, itu TIDAK akan terjadi — hasilnya tetap `vw` (berdasarkan lebar). Untuk elemen full-height, gunakan `h-screen`, `min-h-screen`, `h-full`, atau `flex-1`.
 
 9. **Wajib `mediaQuery: true` untuk Tailwind v4.** Tailwind v4 menggunakan Cascade Layers (`@layer`) yang secara internal dianggap sebagai "Media Query" oleh plugin ini. Jika `mediaQuery` dibiarkan `false` (default), plugin akan mengabaikan seluruh class CSS dari Tailwind. Aturan ini sangat krusial agar UI berhasil melakukan *scaling* di v4.
+
+10. **Exclude Properti Border (Ketebalan dan Radius).** Jangan mengonversi properti yang berhubungan dengan `border` (seperti `border-width`, `border-radius`, dll) karena akan membuat styling menjadi berantakan ketika di-scale (misal border menjadi terlalu tipis/hilang, atau radius melengkung tidak proporsional). Pastikan opsi `propList` disetel untuk mengecualikannya:
+    ```javascript
+    propList: ['*', '!border*']
+    ```
 
 ## Testing Checklist
 
