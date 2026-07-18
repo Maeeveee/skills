@@ -62,53 +62,43 @@ yarn add -D postcss-px-to-viewport-8-plugin
 pnpm add -D postcss-px-to-viewport-8-plugin
 ```
 
-### 2. Konfigurasi PostCSS
+### 2. Konfirmasi Environment (Turbopack vs Webpack)
 
-Modifikasi file `postcss.config.js` (atau `postcss.config.mjs`) di root project Anda. **Urutan plugin SANGAT PENTING**: `tailwindcss` harus di atas (dijalankan lebih dulu), baru `postcss-px-to-viewport-8-plugin` di bawah.
+**INSTRUKSI UNTUK AI**: Ketika Anda (AI) diminta menginisialisasi skill ini untuk pertama kali di project Next.js, Anda **WAJIB** menawarkan pilihan kepada user terlebih dahulu:
+> "Apakah Anda ingin tetap menggunakan **Turbopack** atau beralih ke **Webpack**?
+> - **Turbopack**: Proses hot-reload sangat cepat, tetapi terkadang preview scaling px-to-viewport hanya berjalan sempurna setelah di-build (`npm run build`).
+> - **Webpack** (Default Next.js tanpa `--turbo`): Preview scaling langsung terlihat sempurna saat development (`npm run dev`), namun proses hot-reload dan build akan terasa lebih lambat."
 
-**Untuk Tailwind v3 (Next.js / Nuxt / Vite):**
+Tunggu jawaban user sebelum melakukan konfigurasi.
+**TINDAKAN SETELAH JAWABAN USER:**
+- **Jika user memilih Webpack**: Cek file `package.json`. Modifikasi script `"dev"` agar berjalan menggunakan Webpack (dengan menghapus flag `--turbo` jika ada, sehingga menjadi `"next dev"`).
+- **Jika user memilih Turbopack**: Biarkan file `package.json` apa adanya tanpa diotak-atik.
+
+### 3. Konfigurasi PostCSS
+
+Modifikasi file `postcss.config.js` (atau `postcss.config.mjs`) di root project Anda. Pastikan **hanya ada satu konfigurasi `postcss-px-to-viewport-8-plugin`** agar tidak redundan dan tumpang tindih.
+
+**Urutan plugin SANGAT PENTING**: Plugin Tailwind harus di atas (dijalankan lebih dulu), baru `postcss-px-to-viewport-8-plugin` di bawah.
+
 ```javascript
 // postcss.config.js atau postcss.config.mjs
 export default {
   plugins: {
-    'tailwindcss': {},                      // 1. Tailwind generate CSS dulu
-    'autoprefixer': {},                     // 2. Tambah vendor prefix
-    'postcss-px-to-viewport-8-plugin': {    // 3. Konversi px → vw TERAKHIR
+    // 1. Gunakan 'tailwindcss'
+    'tailwindcss': {},
+    'autoprefixer': {}, 
+    // 2. Konversi px → vw TERAKHIR
+    'postcss-px-to-viewport-8-plugin': {
       unitToConvert: 'px',
       viewportWidth: 1920,      // <- Lebar frame Figma (WAJIB SESUAIKAN)
-      unitPrecision: 5,         // Jumlah desimal (misal: 10.12345vw)
+      unitPrecision: 5,         // Jumlah desimal
       propList: ['*', '!border*'], // Konversi semua properti CSS KECUALI border (ketebalan/radius)
       viewportUnit: 'vw',       // Unit hasil akhir
       fontViewportUnit: 'vw',   // Unit khusus font
-      selectorBlackList: [],    // Class CSS yang TIDAK dikonversi (lihat Aturan Wajib #3)
+      selectorBlackList: [],    // Class CSS yang TIDAK dikonversi (contoh: ['ignore-'])
       minPixelValue: 1,         // Jangan konversi 1px (border tipis tetap 1px)
-      mediaQuery: false,        // Jangan konversi px di dalam @media query
+      mediaQuery: true,         // WAJIB TRUE untuk Tailwind v4 (agar memproses @layer). Aman juga untuk v3.
       replace: true,
-      exclude: [/node_modules/], // WAJIB: Abaikan library luar
-      landscape: false
-    }
-  }
-}
-```
-
-**Untuk Tailwind v4:**
-```javascript
-// postcss.config.js atau postcss.config.mjs
-export default {
-  plugins: {
-    '@tailwindcss/postcss': {},             // 1. Tailwind v4 via PostCSS bridge
-    'postcss-px-to-viewport-8-plugin': {    // 2. Konversi px → vw
-      unitToConvert: 'px',
-      viewportWidth: 1920,
-      unitPrecision: 5,
-      propList: ['*', '!border*'], // Konversi semua properti CSS KECUALI border (ketebalan/radius)
-      viewportUnit: 'vw',
-      fontViewportUnit: 'vw',
-      selectorBlackList: [],
-      minPixelValue: 1,
-      mediaQuery: true,         // WAJIB TRUE untuk Tailwind v4 agar memproses di dalam @layer
-      replace: true,
-      exclude: [/node_modules/],
       landscape: false
     }
   }
@@ -161,7 +151,7 @@ Browser akan membacanya sebagai unit `vw` secara otomatis. Di layar 1920px, `500
    ```
    **CATATAN**: Tambahkan class `max-w-[1920px]` ke `selectorBlackList` agar nilai `1920px` TIDAK ikut dikonversi menjadi `vw`. Atau gunakan unit lain: `max-w-[120rem]`.
 
-6. **JANGAN Exclude File CSS Tailwind dari Konversi.** Jika Anda menambahkan path ke file CSS utama Tailwind (misalnya `globals.css`) ke dalam opsi `exclude`, seluruh class Tailwind tidak akan terkonversi. Opsi `exclude` hanya untuk mengabaikan CSS dari `node_modules` atau file CSS pihak ketiga.
+6. **Biarkan Library Eksternal Ikut Terkonversi.** Secara default, kita TIDAK MENGGUNAKAN opsi `exclude: [/node_modules/]` agar styling dari library eksternal ikut mengecil proporsional. Jika ada elemen dari library yang rusak karena menyusut, isolasi dengan menambahkannya ke `selectorBlackList`. DILARANG meng-exclude file CSS utama Tailwind (misalnya `globals.css`) karena akan menggagalkan seluruh konversi.
 
 7. **`viewportWidth` HARUS Sama dengan Lebar Frame Figma.** Jika desainer membuat frame di 1440px, set `viewportWidth: 1440`. Jika di 1920px, set `viewportWidth: 1920`. Kesalahan nilai ini akan membuat seluruh proporsi meleset.
 
