@@ -105,17 +105,24 @@ export default {
 }
 ```
 
-### 3. Workflow Development
+### 4. Workflow Development
 
 Setelah melakukan konfigurasi PostCSS, Anda wajib **merestart server development** (`Ctrl+C` → `npm run dev` ulang).
 
-Selanjutnya, langsung *slicing* UI mengikuti ukuran px yang tertera di Figma:
+Selanjutnya, langsung *slicing* UI mengikuti ukuran px yang tertera di Figma. Gunakan arbitrary values **hanya di belakang prefix `lg:`** (lihat Aturan #11) dan class Tailwind bawaan untuk default/mobile:
 ```html
-<!-- Anda mengetik nilai px statis dari Figma -->
-<div class="w-[500px] h-[300px] text-[24px] mt-[50px] p-[20px] gap-[16px]">
+<!-- Responsive: default pakai class bawaan, lg: pakai px dari Figma -->
+<div class="w-full h-auto text-base mt-6 p-4 gap-4 lg:w-[500px] lg:h-[300px] lg:text-[24px] lg:mt-[50px] lg:p-[20px] lg:gap-[16px]">
   Isi Konten
 </div>
 ```
+> **Catatan**: Jika project **hanya mentarget desktop** (tanpa desain mobile), boleh menulis tanpa prefix `lg:`:
+> ```html
+> <div class="w-[500px] h-[300px] text-[24px] mt-[50px] p-[20px] gap-[16px]">
+>   Isi Konten (Desktop-only project)
+> </div>
+> ```
+
 Browser akan membacanya sebagai unit `vw` secara otomatis. Di layar 1920px, `500px` = 26.04vw. Di layar 1280px, 26.04vw = ~333px. Proporsi tetap identik.
 
 ## Aturan Wajib
@@ -163,6 +170,42 @@ Browser akan membacanya sebagai unit `vw` secara otomatis. Di layar 1920px, `500
     ```javascript
     propList: ['*', '!border*']
     ```
+
+11. **Arbitrary Values (`[...]`) HANYA Boleh Digunakan dengan Prefix `lg:`.**  Karena plugin ini mengonversi semua nilai `px` di output CSS menjadi `vw`, penggunaan arbitrary values di Tailwind (seperti `w-[500px]`, `text-[24px]`, `p-[20px]`) **HANYA diperbolehkan** pada breakpoint `lg:` ke atas (yaitu: `lg:`, `xl:`, `2xl:`).
+
+    **Alasannya:**
+    - Nilai arbitrary `px` dari Figma ditujukan untuk layout desktop (≥1024px) yang akan dikonversi PostCSS menjadi `vw` agar proporsional.
+    - Untuk breakpoint di bawah `lg:` (yaitu default/`sm:`/`md:`), **WAJIB menggunakan class utility bawaan Tailwind** (seperti `w-full`, `w-1/2`, `p-4`, `text-base`, `gap-6`, dll) karena di resolusi mobile/tablet, layout seharusnya mengikuti pola responsive konvensional, bukan skala proporsional dari Figma desktop.
+
+    **✅ Contoh BENAR:**
+    ```html
+    <!-- Default (mobile) pakai class bawaan, lg: pakai arbitrary dari Figma -->
+    <div class="w-full p-4 text-base lg:w-[500px] lg:p-[40px] lg:text-[24px]">
+      Konten responsif
+    </div>
+
+    <!-- Spacing & gap -->
+    <div class="gap-4 mt-6 lg:gap-[32px] lg:mt-[60px]">
+      ...
+    </div>
+    ```
+
+    **❌ Contoh SALAH:**
+    ```html
+    <!-- JANGAN: arbitrary tanpa prefix lg: -->
+    <div class="w-[500px] p-[40px] text-[24px]">
+      Ini akan dikonversi vw di SEMUA breakpoint, termasuk mobile!
+    </div>
+
+    <!-- JANGAN: arbitrary di sm: atau md: -->
+    <div class="sm:w-[300px] md:p-[20px]">
+      Arbitrary di breakpoint kecil tidak diperlukan
+    </div>
+    ```
+
+    **Pengecualian**: Jika project **hanya mentarget desktop** (tidak ada desain mobile/tablet dari Figma), maka arbitrary values boleh digunakan tanpa prefix `lg:` karena seluruh layout memang hanya untuk viewport desktop.
+
+    > **CATATAN UNTUK AI**: Saat meng-generate atau me-review kode, selalu pastikan arbitrary values `px` berada di belakang prefix `lg:` (atau `xl:`/`2xl:`). Jika menemukan arbitrary values tanpa prefix breakpoint, pindahkan ke `lg:` dan ganti versi default-nya dengan class Tailwind bawaan yang paling sesuai.
 
 ## Testing Checklist
 

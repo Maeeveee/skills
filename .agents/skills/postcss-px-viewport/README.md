@@ -43,23 +43,22 @@ Invoke juga saat user melaporkan bug terkait teknik ini: ukuran font tidak propo
          unitToConvert: 'px',
          viewportWidth: 1920,
          unitPrecision: 5,
-         propList: ['*'],
+         propList: ['*', '!border*'],
          viewportUnit: 'vw',
          fontViewportUnit: 'vw',
          selectorBlackList: [],
          minPixelValue: 1,
-         mediaQuery: false,
+         mediaQuery: true,
          replace: true,
-         exclude: [/node_modules/],
          landscape: false
        }
      }
    }
    ```
 
-3. Slicing langsung dari Figma:
+3. Slicing langsung dari Figma (arbitrary values di `lg:`, class bawaan untuk default):
    ```html
-   <div class="w-[500px] h-[300px] text-[24px] mt-[50px] p-[20px]">
+   <div class="w-full p-4 text-base lg:w-[500px] lg:h-[300px] lg:text-[24px] lg:mt-[50px] lg:p-[20px]">
      Konten pixel-perfect
    </div>
    ```
