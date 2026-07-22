@@ -1,30 +1,30 @@
 # postcss-px-viewport
 
-Gunakan teknik postcss-px-to-viewport untuk membuat desain UI menjadi pixel-perfect dan proporsional di semua layar desktop. Secara otomatis mengonversi statis px menjadi vw (viewport width) saat build-time.
+Use the postcss-px-to-viewport technique to make UI designs pixel-perfect and proportional across all desktop screens. Automatically converts static px to vw (viewport width) at build-time.
 
 ## What it does
 
-Mengonversi seluruh nilai `px` di output CSS (termasuk Tailwind utility classes) menjadi unit `vw` pada saat kompilasi. Developer bisa copy-paste angka `px` langsung dari Figma tanpa konversi manual, dan layout akan menyusut serempak secara proporsional di semua resolusi desktop.
+Converts all `px` values in CSS output (including Tailwind utility classes) to `vw` units during compilation. Developers can copy-paste `px` numbers directly from Figma without manual conversion, and the layout will shrink proportionally across all desktop resolutions simultaneously.
 
-- **Framer Motion / GSAP aman**: Tidak merusak animasi karena menggunakan unit CSS native (`vw`), bukan manipulasi DOM via JavaScript.
-- **`position: fixed` & `sticky` berfungsi native**: Tidak seperti `transform: scale` atau `zoom`, konversi unit tidak merusak CSS positioning.
-- **Zero-Runtime**: Konversi terjadi saat build-time (kompilasi CSS). Tidak ada hook JavaScript, tidak ada event listener `resize`, tidak ada re-render React.
-- **SEO & Aksesibilitas friendly**: Teks mengikuti reflow natural CSS, bukan dipaksa menyusut oleh `zoom` atau `transform`.
+- **Framer Motion / GSAP safe**: Does not break animations because it uses native CSS units (`vw`), not DOM manipulation via JavaScript.
+- **`position: fixed` & `sticky` work natively**: Unlike `transform: scale` or `zoom`, unit conversion does not break CSS positioning.
+- **Zero-Runtime**: Conversion happens at build-time (CSS compilation). No JavaScript hooks, no `resize` event listeners, no React re-renders.
+- **SEO & Accessibility friendly**: Text follows natural CSS reflow, not forced to shrink by `zoom` or `transform`.
 
 ## How to invoke
 
-Invoke skill ini saat membangun UI pixel-perfect proporsional dari hand-off Figma beresolusi tetap (misal 1920x1080) untuk proyek Next.js, Nuxt, atau Vite yang menggunakan Tailwind CSS.
+Invoke this skill when building a pixel-perfect proportional UI from a fixed-resolution Figma hand-off (e.g., 1920x1080) for Next.js, Nuxt, or Vite projects using Tailwind CSS.
 
-Trigger words/phrases dari user:
-- "biar gak pecah di laptop"
-- "scaling otomatis"
-- "pixel perfect di semua resolusi"
+Trigger words/phrases from the user:
+- "don't let it break on laptop"
+- "automatic scaling"
+- "pixel perfect on all resolutions"
 - "postcss viewport"
-- "konversi px ke vw otomatis"
-- "responsive tanpa media query"
-- "copy paste dari Figma langsung responsif"
+- "auto convert px to vw"
+- "responsive without media queries"
+- "copy paste from Figma responsive instantly"
 
-Invoke juga saat user melaporkan bug terkait teknik ini: ukuran font tidak proporsional, elemen membesar tak terbatas di ultrawide, spacing meleset, atau inline styles tidak ikut menyusut.
+Also invoke when the user reports bugs related to this technique: font size out of proportion, elements expanding indefinitely on ultrawide, spacing off, or inline styles not shrinking.
 
 ## Example usage
 
@@ -33,7 +33,7 @@ Invoke juga saat user melaporkan bug terkait teknik ini: ukuran font tidak propo
    yarn add -D postcss-px-to-viewport-8-plugin
    ```
 
-2. Tambahkan ke `postcss.config.js` (setelah `tailwindcss`):
+2. Add to `postcss.config.js` (after `tailwindcss`):
    ```javascript
    export default {
      plugins: {
@@ -56,13 +56,13 @@ Invoke juga saat user melaporkan bug terkait teknik ini: ukuran font tidak propo
    }
    ```
 
-3. Slicing langsung dari Figma (arbitrary values di `lg:`, class bawaan untuk default):
+3. Slicing directly from Figma (arbitrary values at `lg:`, default classes for default):
    ```html
    <div class="w-full p-4 text-base lg:w-[500px] lg:h-[300px] lg:text-[24px] lg:mt-[50px] lg:p-[20px]">
-     Konten pixel-perfect
+     Pixel-perfect content
    </div>
    ```
 
 ## See also
 
-- [`SKILL.md`](./SKILL.md) — full LLM-facing instructions, aturan wajib, gotchas, dan testing checklist
+- [`SKILL.md`](./SKILL.md) — full LLM-facing instructions, strict rules, gotchas, and testing checklist
