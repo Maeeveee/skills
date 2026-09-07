@@ -16,7 +16,7 @@ A PostCSS plugin converts every `px` in the compiled CSS (including Tailwind out
 3. **Elements that must never shrink** (fixed-size icons, 1px separators) — exclude them via `selectorBlackList` (see SETUP.md).
 4. **Pure mobile-first projects** — this technique shrinks desktop layouts; on mobile it makes fonts too small.
 
-If the client demands a *hard* 1:1 freeze on ultrawide screens, `vw` cannot provide it — use the `tailwind-scaling` (zoom canvas) skill instead.
+If the client demands a *hard* 1:1 freeze on ultrawide screens, `vw` cannot provide it — that requires a JavaScript virtual-canvas approach (CSS `zoom`/`transform: scale` wrapper locked to the design resolution), which is outside this skill's scope.
 
 ## MANDATORY: How to Write Tailwind Classes
 

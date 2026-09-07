@@ -90,7 +90,7 @@ After configuring, **restart the dev server** (`Ctrl+C` → `npm run dev`).
    </div>
    ```
    `rem` is never converted, so the cap stays fixed. **Do NOT** write `max-w-[1920px]` and add it to `selectorBlackList` — Tailwind escapes the brackets in the generated selector (`.max-w-\[1920px\]`), so the blacklist entry never matches and the cap silently converts to `100vw` (useless).
-   **Known limitation**: `vw` is relative to the *viewport*, not the wrapper. The cap stops fluid (`w-full`) sections and page backgrounds from stretching, but fixed-size `vw` elements keep growing past it on ultrawide. A hard 1:1 ultrawide freeze requires the `tailwind-scaling` (zoom canvas) technique instead.
+   **Known limitation**: `vw` is relative to the *viewport*, not the wrapper. The cap stops fluid (`w-full`) sections and page backgrounds from stretching, but fixed-size `vw` elements keep growing past it on ultrawide. A hard 1:1 ultrawide freeze requires a JavaScript virtual-canvas technique (CSS `zoom`/`transform: scale` wrapper), which is outside this skill's scope.
 
 6. **Do not exclude `node_modules`.** By default, external library CSS also converts so third-party components scale with the page. If a specific library element breaks, isolate it via `selectorBlackList` — never `exclude: [/node_modules/]`, and never exclude the main Tailwind CSS file (e.g., `globals.css`).
 

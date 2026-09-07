@@ -6,7 +6,6 @@ Koleksi skill untuk agen AI (Gemini / Antigravity) yang memperluas kemampuan age
 
 | Skill | Deskripsi | Teknik |
 |---|---|---|
-| [tailwind-scaling](.agents/skills/tailwind-scaling/) | Virtual canvas menggunakan CSS `zoom` — UI dikunci pada resolusi Figma lalu di-shrink proporsional via JavaScript hook | CSS `zoom` + React Hook |
 | [postcss-px-viewport](.agents/skills/postcss-px-viewport/) | Konversi otomatis `px` → `vw` saat build-time — aman untuk Framer Motion, SEO, dan aksesibilitas | PostCSS Plugin |
 
 ## Cara Menggunakan
@@ -30,10 +29,8 @@ Untuk menggunakan skill ini di project lain, tambahkan referensi ke `skills.json
 ```
 .agents/
 └── skills/
-    ├── tailwind-scaling/
-    │   ├── SKILL.md          ← Instruksi lengkap untuk agen
-    │   └── README.md         ← Dokumentasi human-facing
     └── postcss-px-viewport/
         ├── SKILL.md          ← Instruksi lengkap untuk agen
+        ├── setup.md          ← Setup & konfigurasi one-time
         └── README.md         ← Dokumentasi human-facing
 ```
