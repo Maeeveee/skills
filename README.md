@@ -14,7 +14,22 @@ Skill-skill ini otomatis terdeteksi oleh agen saat repository ini terbuka sebaga
 
 ### Memasang di Project Lain
 
-Untuk menggunakan skill ini di project lain, tambahkan referensi ke `skills.json` di customization root project target Anda:
+Install via `skills` CLI (works for Claude Code, OpenCode, Cursor, Codex, dll):
+
+```bash
+# Install skill spesifik
+npx skills add https://github.com/Maeeveee/skills --skill postcss-px-viewport
+
+# Install semua skill dalam repo ini
+npx skills add https://github.com/Maeeveee/skills
+
+# Lihat daftar skill yang tersedia tanpa install
+npx skills add https://github.com/Maeeveee/skills --list
+```
+
+Tambahan flag yang berguna: `-g` (install global, tersedia di semua project), `-a <agent>` (target agent spesifik), `-y` (skip prompt).
+
+Alternatifnya, tambahkan referensi ke `skills.json` di customization root project target Anda:
 
 ```json
 {
