@@ -37,13 +37,14 @@ Also invoke when the user reports bugs related to this technique: font size out 
    ```javascript
    export default {
      plugins: {
+       // Tailwind v3: 'tailwindcss': {}  |  Tailwind v4: '@tailwindcss/postcss': {}
        'tailwindcss': {},
        'autoprefixer': {},
        'postcss-px-to-viewport-8-plugin': {
          unitToConvert: 'px',
          viewportWidth: 1920,
          unitPrecision: 5,
-         propList: ['*', '!border*'],
+         propList: ['*'],
          viewportUnit: 'vw',
          fontViewportUnit: 'vw',
          selectorBlackList: [],
@@ -65,4 +66,5 @@ Also invoke when the user reports bugs related to this technique: font size out 
 
 ## See also
 
-- [`SKILL.md`](./SKILL.md) — full LLM-facing instructions, strict rules, gotchas, and testing checklist
+- [`SKILL.md`](./SKILL.md) — per-task Tailwind class rules (arbitrary px at `lg:`, built-in classes below), self-check greps, and quick-debug guide
+- [`setup.md`](./setup.md) — one-time initialization: install, Turbopack vs Webpack, full PostCSS config, and the testing checklist

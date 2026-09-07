@@ -5,217 +5,119 @@ description: 'Use the postcss-px-to-viewport technique to make UI designs pixel-
 
 # PostCSS Px-to-Viewport Scaling
 
-This technique uses a PostCSS plugin to convert all `px` usage in **generated CSS files** (including Tailwind output) to browser screen relative percentages `vw` (Viewport Width) at build-time. Developers can copy-paste `px` numbers directly from Figma, and the entire UI will shrink proportionally across all desktop resolutions without additional JavaScript.
+A PostCSS plugin converts every `px` in the compiled CSS (including Tailwind output) to `vw` at build-time. You copy px values straight from Figma; the whole UI shrinks proportionally across desktop resolutions (1920 → 1366 → 1280) with zero runtime JS, native `position: fixed`/`sticky` behavior, and Framer Motion / GSAP animation safety.
 
-## Advantages over CSS Zoom / Transform Scale
-
-1. **Animation Compatibility (Framer Motion / GSAP Safe)**: The final result uses native CSS units (`vw`), allowing Framer Motion to read dimension sizes and bounding boxes accurately. No animations will jitter, jump, or miss their positions.
-2. **Does Not Break Layouts**: Unlike `transform: scale` or `zoom`, `vw` unit conversion does not break the natural CSS layout flow. `position: fixed` and `position: sticky` work exactly as they should without needing `createPortal` tricks.
-3. **Better Performance (Zero-Runtime)**: Conversion is done during the *build-time* phase (CSS compilation), not relying on JavaScript execution tracking `resize` event listeners in the browser. No hooks, no React re-renders.
-4. **Cross-Framework Support**: Works perfectly in Next.js (Pages/App Router), Nuxt, Vite, and other build tools that utilize PostCSS.
-5. **Universal Browser Compatibility**: The `vw` unit is supported by 100% of modern browsers including Firefox, Safari, and mobile browsers, without compatibility issues like CSS `zoom` which was only supported by Firefox since version 126.
-
-## When to Use This Technique?
-
-Use this technique when you receive a Figma *hand-off* with a *fixed* resolution (e.g., 1920x1080) and the client wants the website result to be exactly 1:1 identical from ultra-wide screens down to small laptop screens (1366 / 1280), **and** you desperately need animation reliability (Framer Motion / GSAP) as well as SEO and accessibility safety.
-
-### Trigger Words / Phrases from User
-
-Invoke this skill when the user mentions:
-- "don't let it break on laptop"
-- "automatic scaling"
-- "pixel perfect on all resolutions"
-- "postcss viewport"
-- "auto convert px to vw"
-- "responsive without media queries"
-- "copy paste from Figma responsive instantly"
-
-Also invoke when the user reports bugs in a project already using this technique: font size too small/large at certain resolutions, elements clipped on ultrawide screens, or unproportional spacing.
+> **First task in a project?** Check whether `postcss.config.js` already contains `postcss-px-to-viewport-8-plugin`. If not, read [SETUP.md](setup.md) in this skill's directory and complete initialization before writing any UI. Everything below is required on EVERY component task.
 
 ## When NOT to Use This Technique
 
-1. **Project uses Tailwind v4 WITHOUT `@tailwindcss/postcss`**: Tailwind v4 by default no longer runs as a PostCSS plugin. If you do not install `@tailwindcss/postcss`, the px-to-viewport plugin will never process Tailwind's output.
-2. **Components relying on dynamic inline styles**: If the project uses a lot of `style={{ width: '300px' }}` or third-party libraries generating inline styles at runtime, PostCSS **will not convert** those values because PostCSS only processes `.css` files during compilation.
-3. **Layouts requiring fixed absolute sizes**: If there are elements whose size MUST remain the same across all resolutions (e.g., a 24px icon that shouldn't shrink, 1px borders), you must exclude those elements using `selectorBlackList` or `propList`.
-4. **Pure mobile-first projects**: This plugin is designed to shrink desktop layouts. If your project is purely mobile-first, this technique is overkill and can cause font sizes to become too small on mobile screens.
+1. **Tailwind v4 without `@tailwindcss/postcss`** — the plugin never sees Tailwind's output; nothing converts.
+2. **Heavy dynamic inline styles** (`style={{ width: '300px' }}`) or runtime-generated styles — PostCSS only processes `.css` files at compile time.
+3. **Elements that must never shrink** (fixed-size icons, 1px separators) — exclude them via `selectorBlackList` (see SETUP.md).
+4. **Pure mobile-first projects** — this technique shrinks desktop layouts; on mobile it makes fonts too small.
 
-## Critical Prerequisites: How This Plugin Works with Tailwind
+If the client demands a *hard* 1:1 freeze on ultrawide screens, `vw` cannot provide it — use the `tailwind-scaling` (zoom canvas) skill instead.
 
-> **IMPORTANT**: This plugin DOES NOT read your HTML/JSX classes directly. The workflow is:
->
-> 1. **Tailwind CSS** generates CSS files from the classes you use (e.g., `w-[500px]` → CSS `.w-\[500px\] { width: 500px; }`)
-> 2. **PostCSS px-to-viewport** scans the CSS output and converts `500px` → `26.04167vw`
-> 3. The browser reads the final result as `vw` units
->
-> Therefore, Tailwind **MUST** run as a PostCSS plugin (not standalone CLI mode or standalone Vite plugin) so its CSS output enters the PostCSS pipeline and can be processed by the px-to-viewport plugin.
+## MANDATORY: How to Write Tailwind Classes
 
-## Implementation Steps
+> **IMPORTANT FOR AI**: This is the #1 section agents get wrong. Read it fully before writing any `className`, and run the Self-Check greps at the end of this section before considering any component task complete.
 
-### 1. Installation
+The plugin converts `px` in the compiled CSS to `vw`. Two facts follow from this, and together they dictate every class you write:
 
-Use the *forked* version of the plugin that is compatible with PostCSS 8:
-```bash
-npm install -D postcss-px-to-viewport-8-plugin
-# or
-yarn add -D postcss-px-to-viewport-8-plugin
-# or
-pnpm add -D postcss-px-to-viewport-8-plugin
-```
+1. **Built-in scale classes resolve to `rem`, NOT `px`** (`gap-6` → `1.5rem`, `p-4` → `1rem`, `text-base` → `1rem`, `w-96` → `24rem`). The plugin never converts `rem`, so these values stay **frozen** while everything around them shrinks → broken proportions on 1280/1366 laptops.
+2. **Arbitrary px classes resolve to `px`** (`gap-[32px]` → `32px`). The plugin converts them to `vw`, so they scale at **every breakpoint where they apply** — including mobile.
 
-### 2. Environment Confirmation (Turbopack vs Webpack)
+### Rule A — Desktop Layer (`lg:`, `xl:`, `2xl:`)
 
-**INSTRUCTIONS FOR AI**: When you (AI) are asked to initialize this skill for the first time in a Next.js project, you **MUST** offer the user a choice first:
-> "Do you want to keep using **Turbopack** or switch to **Webpack**?
-> - **Turbopack**: Very fast hot-reload, but sometimes the px-to-viewport scaling preview only works perfectly after building (`npm run build`).
-> - **Webpack** (Default Next.js without `--turbo`): Scaling preview is instantly perfect during development (`npm run dev`), but hot-reload and build processes will feel slower."
+Every spacing, sizing, and typography value **MUST be an arbitrary px value**:
 
-Wait for the user's answer before proceeding with the configuration.
-**ACTION AFTER USER'S ANSWER:**
-- **If the user chooses Webpack**: Check the `package.json` file. Modify the `"dev"` script to run using Webpack (by removing the `--turbo` flag if it exists, so it becomes `"next dev"`).
-- **If the user chooses Turbopack**: Leave the `package.json` file as is without modifying it.
-
-### 3. PostCSS Configuration
-
-Modify the `postcss.config.js` (or `postcss.config.mjs`) file in your project root. Ensure there is **only one `postcss-px-to-viewport-8-plugin` configuration** to avoid redundancy and overlapping.
-
-**Plugin order is CRITICAL**: The Tailwind plugin must be at the top (run first), then `postcss-px-to-viewport-8-plugin` below it.
-
-```javascript
-// postcss.config.js or postcss.config.mjs
-export default {
-  plugins: {
-    // 1. Use 'tailwindcss'
-    'tailwindcss': {},
-    'autoprefixer': {}, 
-    // 2. Convert px → vw LAST
-    'postcss-px-to-viewport-8-plugin': {
-      unitToConvert: 'px',
-      viewportWidth: 1920,      // <- Figma frame width (MUST ADJUST)
-      unitPrecision: 5,         // Number of decimals
-      propList: ['*', '!border*'], // Convert all CSS properties EXCEPT border (thickness/radius)
-      viewportUnit: 'vw',       // Final result unit
-      fontViewportUnit: 'vw',   // Specific unit for fonts
-      selectorBlackList: [],    // CSS classes that are NOT converted (e.g., ['ignore-'])
-      minPixelValue: 1,         // Do not convert 1px (thin borders stay 1px)
-      mediaQuery: true,         // MUST BE TRUE for Tailwind v4 (to process @layer). Also safe for v3.
-      replace: true,
-      landscape: false
-    }
-  }
-}
-```
-
-### 4. Development Workflow
-
-After configuring PostCSS, you must **restart the development server** (`Ctrl+C` → rerun `npm run dev`).
-
-Next, directly slice the UI following the px sizes stated in Figma. Use arbitrary values **only behind the `lg:` prefix** (see Rule #11) and default Tailwind classes for default/mobile:
 ```html
-<!-- Responsive: default uses built-in classes, lg: uses px from Figma -->
+<!-- ✅ CORRECT: arbitrary px from Figma -->
+<div class="lg:gap-[32px] lg:p-[40px] lg:mt-[50px] lg:w-[500px] lg:h-[300px] lg:text-[24px] lg:leading-[32px]">
+
+<!-- ❌ FORBIDDEN: built-in numeric scale at lg+ (frozen rem, silently breaks scaling) -->
+<div class="lg:gap-6 lg:p-4 lg:mt-2 lg:w-96 lg:h-64 lg:text-base lg:leading-6">
+```
+
+`lg:gap-6` looks like idiomatic Tailwind, but in this technique it is a **silent bug**: the value never scales while its siblings do.
+
+This applies **even to values not written in Figma**. If you must invent a spacing, still write it as arbitrary px (`lg:gap-[24px]`) so it scales with its siblings — never `lg:gap-6`.
+
+### Rule B — Mobile Layer (base, `sm:`, `md:`)
+
+Every value **MUST use built-in Tailwind classes** (`w-full`, `p-4`, `text-base`, `gap-4`, `mt-6`):
+
+```html
+<!-- ✅ CORRECT: built-in classes for the mobile layer -->
+<div class="w-full h-auto text-base mt-6 p-4 gap-4">
+
+<!-- ❌ FORBIDDEN: bare arbitrary px leaking desktop proportions into mobile -->
+<div class="p-[20px] gap-[16px] text-[14px] sm:w-[300px] md:p-[24px]">
+```
+
+### Decision Table
+
+| Utility group | Mobile layer (base / `sm:` / `md:`) | Desktop layer (`lg:`+ / unprefixed desktop-only) |
+|---|---|---|
+| Spacing: `gap`, `gap-x`, `gap-y`, `p*`, `m*`, `space-*` | `gap-4`, `p-4`, `mt-6` | `lg:gap-[32px]`, `lg:p-[40px]`, `lg:mt-[50px]` — **NEVER** `lg:gap-6`, `lg:p-4` |
+| Sizing: `w`, `h`, `min-*`, `max-*`, `inset*`, `top/right/bottom/left` | `w-full`, `max-w-md`, `h-auto` | `lg:w-[500px]`, `lg:h-[300px]`, `lg:max-h-[560px]` |
+| Typography size: `text` size, `leading`, `tracking` | `text-base`, `text-sm`, `leading-6` | `lg:text-[24px]`, `lg:leading-[32px]`, `lg:tracking-[0.5px]` |
+| No-px utilities: colors, `font-weight`, alignment, `flex`/`grid` structure, `z-*`, `opacity`, shadows | built-in classes | built-in classes (`lg:text-red-500`, `lg:grid-cols-3`, `lg:font-bold` are fine — no px to scale) |
+| Relative built-ins: `w-full`, `w-1/2`, `flex-1`, `h-auto`, `h-screen` | allowed | allowed at `lg:` too (relative units scale with their parent) |
+| Border width / radius | built-in (`border`, `rounded-lg`) | arbitrary px from Figma (`lg:rounded-[16px]`, `lg:border-[2px]`) — radius and ≥2px widths convert to `vw` and stay proportional; 1px hairlines stay fixed & crisp |
+
+### Full Example (responsive project)
+
+```html
+<!-- ✅ CORRECT: mobile layer uses built-in classes, desktop layer uses arbitrary px -->
 <div class="w-full h-auto text-base mt-6 p-4 gap-4 lg:w-[500px] lg:h-[300px] lg:text-[24px] lg:mt-[50px] lg:p-[20px] lg:gap-[16px]">
   Content Here
 </div>
+
+<!-- ❌ INCORRECT: built-in numeric scale at lg+ -->
+<div class="gap-4 p-4 text-base lg:gap-6 lg:p-6 lg:text-lg">...</div>
+
+<!-- ❌ INCORRECT: arbitrary px without breakpoint prefix -->
+<div class="w-[500px] p-[40px] text-[24px]">...</div>
 ```
-> **Note**: If the project **only targets desktop** (no mobile design), you may write without the `lg:` prefix:
-> ```html
-> <div class="w-[500px] h-[300px] text-[24px] mt-[50px] p-[20px] gap-[16px]">
->   Content Here (Desktop-only project)
-> </div>
-> ```
 
-The browser will read them as `vw` units automatically. On a 1920px screen, `500px` = 26.04vw. On a 1280px screen, 26.04vw = ~333px. Proportions remain identical.
+### Desktop-Only Projects
 
-## Strict Rules
+If the project targets desktop only (no mobile/tablet design — confirm this with the user once at project start), the desktop layer is the **unprefixed** layer:
 
-1. **PostCSS Plugin Order MUST be Correct.** `tailwindcss` (or `@tailwindcss/postcss` for v4) MUST be placed before `postcss-px-to-viewport-8-plugin`. If reversed, the plugin will not find Tailwind's CSS output to convert — resulting in a complete conversion failure.
+- ALL Figma values are written as bare arbitrary px: `gap-[32px]`, `p-[40px]`, `text-[24px]`, `w-[500px]`.
+- Built-in numeric scale classes (`gap-6`, `p-4`, `text-base`, `w-96`) are **forbidden anywhere** — same frozen-`rem` problem as Rule A.
+- Relative built-ins (`w-full`, `flex-1`, `h-screen`) are still fine.
 
-2. **DO NOT Use Inline Styles with `px` Values for Layouts.** PostCSS only processes `.css` files during compilation. Code like `style={{ width: '300px' }}` in React/Vue will NOT be converted to `vw`. If you need dynamic sizes, calculate manually using a helper:
-   ```typescript
-   // helpers/viewport.ts
-   const DESIGN_WIDTH = 1920
-   export const pxToVw = (px: number) => `${(px / DESIGN_WIDTH) * 100}vw`
-   
-   // Usage in components:
-   <div style={{ width: pxToVw(300) }}>...</div>
-   ```
+### Self-Check Before Finishing (MANDATORY for AI)
 
-3. **Use `selectorBlackList` for Elements That Must Not Shrink.** If there are elements whose size must remain absolute on all screens (e.g., small icons, borders, separators), add a special class prefix (e.g., `ignore-`) and include it in `selectorBlackList`:
-   ```javascript
-   selectorBlackList: ['ignore-']
-   ```
-   Then in HTML:
-   ```html
-   <div class="ignore-icon w-[24px] h-[24px]">...</div>  <!-- Stays 24px, not converted -->
-   ```
+After writing or editing components, run the matching command from the project root and fix every real hit. Ignore false positives where the class only applies at `lg:`+ regardless of variant order (e.g. `lg:dark:p-[40px]`, `lg:hover:p-[20px]`):
 
-4. **Beware of Sub-Pixel Rounding.** The px → vw conversion results in decimal numbers (e.g., `300px` → `15.625vw`). Browsers calculate sub-pixels differently. In layouts with heavily nested elements (nested grids/flex), this rounding can **accumulate** and create 1-2px gaps. For high-precision areas (like grid cards), consider using `gap` instead of margins, and avoid relying on strict percentage calculations between sibling elements.
+```bash
+# (1) Responsive project: built-in numeric scale at lg+ → replace with arbitrary px from Figma
+rg -nP "(?<![\w-])(lg|xl|2xl):(gap|gap-x|gap-y|space-x|space-y|p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|w|min-w|min-h|max-w|h|size|basis|top|right|bottom|left|inset|leading|tracking)-(?![0-9]+/)[0-9]|(?<![\w-])(lg|xl|2xl):text-(xs|sm|base|lg|xl|[0-9]+xl)" -g "*.{tsx,jsx,ts,js,html,vue}"
 
-5. **Provide a `max-width` Wrapper for Ultrawide Screens.** Because `vw` is linear to screen width, on Ultrawide screens (21:9 / 32:9) all elements will enlarge indefinitely. Ensure there's a wrapper with a maximum limit:
-   ```html
-   <div class="max-w-[1920px] mx-auto">
-     <!-- Entire page content -->
-   </div>
-   ```
-   **NOTE**: Add the `max-w-[1920px]` class to `selectorBlackList` so the `1920px` value is NOT converted to `vw`. Alternatively, use another unit: `max-w-[120rem]`.
+# (2) Responsive project: arbitrary px outside the desktop layer → replace with the closest built-in class, or move it behind lg:
+rg -nP "(?<![\w-])(?<!lg:)(?<!xl:)(?<!2xl:)(gap|gap-x|gap-y|space-x|space-y|p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|w|h|min-w|min-h|max-w|size|basis|text|leading|tracking|top|right|bottom|left|inset)-\[[0-9.]+px\]" -g "*.{tsx,jsx,ts,js,html,vue}"
 
-6. **Allow External Libraries to be Converted.** By default, we DO NOT USE the `exclude: [/node_modules/]` option so styling from external libraries scales proportionally as well. If an element from a library breaks due to shrinking, isolate it by adding it to `selectorBlackList`. DO NOT exclude the main Tailwind CSS file (e.g., `globals.css`) as it will ruin the entire conversion.
+# (3) Desktop-only project: built-in numeric scale anywhere (any variant/prefix) → replace with arbitrary px
+rg -nP "(?<![\w-])(gap|gap-x|gap-y|space-x|space-y|p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|w|min-w|min-h|max-w|h|size|basis|top|right|bottom|left|inset|leading|tracking)-(?![0-9]+/)[0-9]|(?<![\w-])text-(xs|sm|base|lg|xl|[0-9]+xl)" -g "*.{tsx,jsx,ts,js,html,vue}"
+```
 
-7. **`viewportWidth` MUST Match the Figma Frame Width.** If the designer created frames at 1440px, set `viewportWidth: 1440`. If at 1920px, set `viewportWidth: 1920`. Getting this value wrong will throw off all proportions.
+**How to fix hits:**
+- Built-in numeric scale at the desktop layer → look up the exact px value in Figma (or infer a sensible px value) and write it as arbitrary (`lg:gap-6` → `lg:gap-[24px]`).
+- Bare arbitrary px in a responsive project → move it behind `lg:` and give the base layer the closest built-in class (`p-[20px]` → `p-4 lg:p-[20px]`).
 
-8. **Avoid Using `vh` Units for Height.** This plugin by default only converts `px` to `vw` (width). If you write `h-[1080px]` expecting the height to be proportional to screen height, that will NOT happen — the result will still be `vw` (based on width). For full-height elements, use `h-screen`, `min-h-screen`, `h-full`, or `flex-1`.
+## Per-Task Rules
 
-9. **`mediaQuery: true` is Mandatory for Tailwind v4.** Tailwind v4 uses Cascade Layers (`@layer`), which are internally considered "Media Queries" by this plugin. If `mediaQuery` is left `false` (default), the plugin will ignore all CSS classes from Tailwind. This rule is highly critical for the UI to scale properly in v4.
+1. **No inline `px` styles for layout.** `style={{ width: '300px' }}` is never converted — PostCSS only processes `.css` files. Dynamic sizes: use the `pxToVw` helper (SETUP.md).
+2. **Full-height elements**: use `h-screen`, `min-h-screen`, `h-full`, or `flex-1`. Never `h-[1080px]` — it converts to width-based `vw`, not height.
+3. **Non-shrinking elements** (icons, separators): give them an `ignore-` class prefix and make sure `ignore-` is in `selectorBlackList` (SETUP.md).
+4. **High-precision grids**: prefer `gap` over margins — sub-pixel rounding accumulates in deeply nested layouts (details in SETUP.md).
 
-10. **Exclude Border Properties (Thickness and Radius).** Do not convert properties related to `border` (such as `border-width`, `border-radius`, etc.) as it will make the styling messy when scaled (e.g., borders becoming too thin/disappearing, or curves losing proportion). Ensure the `propList` option is set to exclude them:
-    ```javascript
-    propList: ['*', '!border*']
-    ```
+## Quick Debug
 
-11. **Arbitrary Values (`[...]`) MAY ONLY be Used with the `lg:` Prefix.** Because this plugin converts all `px` values in CSS output to `vw`, using arbitrary values in Tailwind (like `w-[500px]`, `text-[24px]`, `p-[20px]`) is **ONLY allowed** at the `lg:` breakpoint and above (i.e., `lg:`, `xl:`, `2xl:`).
-
-    **The Reason:**
-    - Arbitrary `px` values from Figma are meant for desktop layouts (≥1024px), which PostCSS will convert to `vw` to make them proportional.
-    - For breakpoints below `lg:` (i.e., default/`sm:`/`md:`), you **MUST use built-in Tailwind utility classes** (like `w-full`, `w-1/2`, `p-4`, `text-base`, `gap-6`, etc.) because at mobile/tablet resolutions, the layout should follow conventional responsive patterns, not proportional scales from desktop Figma.
-
-    **✅ CORRECT Example:**
-    ```html
-    <!-- Default (mobile) uses built-in classes, lg: uses arbitrary from Figma -->
-    <div class="w-full p-4 text-base lg:w-[500px] lg:p-[40px] lg:text-[24px]">
-      Responsive content
-    </div>
-
-    <!-- Spacing & gap -->
-    <div class="gap-4 mt-6 lg:gap-[32px] lg:mt-[60px]">
-      ...
-    </div>
-    ```
-
-    **❌ INCORRECT Example:**
-    ```html
-    <!-- DO NOT: arbitrary without lg: prefix -->
-    <div class="w-[500px] p-[40px] text-[24px]">
-      This will be converted to vw on ALL breakpoints, including mobile!
-    </div>
-
-    <!-- DO NOT: arbitrary on sm: or md: -->
-    <div class="sm:w-[300px] md:p-[20px]">
-      Arbitrary on small breakpoints is not necessary
-    </div>
-    ```
-
-    **Exception**: If the project **only targets desktop** (no mobile/tablet designs from Figma), arbitrary values may be used without the `lg:` prefix because the entire layout is strictly for desktop viewports.
-
-    > **NOTE FOR AI**: When generating or reviewing code, always ensure arbitrary `px` values are behind the `lg:` (or `xl:`/`2xl:`) prefix. If you find arbitrary values without a breakpoint prefix, move them to `lg:` and replace the default version with the most suitable built-in Tailwind class.
-
-## Testing Checklist
-
-Before considering the implementation complete, manually check the following conditions:
-
-- **1920x1080**: The design must be 1:1 identical to Figma. No elements should forcefully enlarge.
-- **1366x768 & 1280x720**: The narrowest laptop resolutions. The entire UI must shrink proportionally and consistently. Check if there are any glaring sub-pixel gaps (especially in grids/tables).
-- **Ultrawide 2560x1080 (21:9)**: Ensure the `max-width` wrapper prevents the design from enlarging infinitely. Content must be centered.
-- **Fixed Navbar/Modal**: Ensure `position: fixed` components work normally and stick to the browser viewport (not trapped inside the wrapper).
-- **Sticky Sidebar/Header**: Ensure `position: sticky` works when scrolling.
-- **Framer Motion Animations**: Run enter/exit, drag, and layout animations — ensure there are no positional jumps or incorrect sizing.
-- **Inline Styles**: Check if any components use inline `px` styles that didn't convert (usually noticeable because their size is disproportionate compared to surrounding elements).
-- **Font Readability**: On a 1280px screen, ensure text is still comfortably readable. If too small, consider increasing `font-size` in the original design or using `clamp()` for font properties.
+- Spacing/typography that does NOT shrink on a 1280px laptop → frozen `rem` class (`lg:gap-6`, `lg:text-base`) → replace with arbitrary px.
+- One element wildly mis-sized vs its siblings → unconverted inline `px` style.
+- Radius looks ROUNDER on smaller screens → radius is frozen in px (`!border*` in `propList`) → remove the exclusion so `border-radius` converts to `vw` (setup.md rule 4).
+- Borders look BOLDER on smaller screens → border-width frozen while content shrinks → let ≥2px widths convert (`propList: ['*']`), keep 1px hairlines protected via `minPixelValue: 1` (setup.md rule 4).
