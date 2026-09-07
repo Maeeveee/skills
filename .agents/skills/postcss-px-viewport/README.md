@@ -67,4 +67,4 @@ Also invoke when the user reports bugs related to this technique: font size out 
 ## See also
 
 - [`SKILL.md`](./SKILL.md) — per-task Tailwind class rules (arbitrary px at `lg:`, built-in classes below), self-check greps, and quick-debug guide
-- [`setup.md`](./setup.md) — one-time initialization: install, Turbopack vs Webpack, full PostCSS config, and the testing checklist
+- [`setup.md`](./setup.md) — one-time initialization: install, Turbopack/Webpack notes, full PostCSS config, and the testing checklist

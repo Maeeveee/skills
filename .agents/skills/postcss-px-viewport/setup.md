@@ -24,15 +24,15 @@ npm install -D postcss-px-to-viewport-8-plugin
 
 ## Turbopack vs Webpack (Next.js only)
 
-**INSTRUCTIONS FOR AI**: When initializing this skill for the first time in a Next.js project, you **MUST** offer the user this choice before configuring anything:
+**Turbopack is fully supported** — verified in dev on Next.js 16 + Tailwind v4 (`@tailwindcss/postcss`): Turbopack reads `postcss.config.js`/`.mjs` and runs the converter during `npm run dev`, so the scaled preview works without switching to Webpack. No `package.json` changes are needed; keep `next dev --turbopack` (or plain `next dev` on Next.js 15+, where Turbopack is the default) as-is.
 
-> "Do you want to keep using **Turbopack** or switch to **Webpack**?
-> - **Turbopack**: Very fast hot-reload, but the px-to-viewport preview sometimes only works perfectly after `npm run build`.
-> - **Webpack** (default Next.js without `--turbo`): Scaling preview is instantly perfect during `npm run dev`, but dev/build feel slower."
+If the dev preview ever shows raw `px` values on arbitrary classes (conversion not applied):
 
-**ACTION AFTER USER'S ANSWER:**
-- **Webpack**: in `package.json`, remove the `--turbo` flag from the `"dev"` script (so it becomes `"next dev"`).
-- **Turbopack**: leave `package.json` unchanged.
+1. Confirm plugin order in `postcss.config` (Tailwind first, converter last) and that there is exactly one converter entry.
+2. **Restart the dev server** (`Ctrl+C` → `npm run dev`) — stale CSS after config edits is the most common cause.
+3. Only on older Next.js versions (<15) with persistent flakiness: switch that project to Webpack by removing the `--turbopack` flag from the `"dev"` script.
+
+Treat `npm run build` as the source of truth when in doubt — build output always reflects the final conversion.
 
 ## PostCSS Configuration
 
