@@ -1,35 +1,35 @@
 # Skills Collection
 
-Koleksi skill untuk agen AI (Gemini / Antigravity) yang memperluas kemampuan agen dalam membangun UI pixel-perfect dan responsif di proyek frontend modern.
+A collection of AI agent skills (Gemini / Antigravity) that extend the agent's ability to build pixel-perfect, responsive UIs in modern frontend projects.
 
-## Daftar Skill
+## Skills
 
-| Skill | Deskripsi | Teknik |
+| Skill | Description | Technique |
 |---|---|---|
-| [postcss-px-viewport](.agents/skills/postcss-px-viewport/) | Konversi otomatis `px` → `vw` saat build-time — aman untuk Framer Motion, SEO, dan aksesibilitas | PostCSS Plugin |
+| [postcss-px-viewport](.agents/skills/postcss-px-viewport/) | Automatic `px` → `vw` conversion at build-time — safe for Framer Motion, SEO, and accessibility | PostCSS Plugin |
 
-## Cara Menggunakan
+## How to Use
 
-Skill-skill ini otomatis terdeteksi oleh agen saat repository ini terbuka sebagai workspace. Skill berada di dalam direktori `.agents/skills/` sesuai standar customization root.
+These skills are automatically detected by the agent when this repository is opened as a workspace. Skills live in the `.agents/skills/` directory, following the customization root standard.
 
-### Memasang di Project Lain
+### Installing in Other Projects
 
-Install via `skills` CLI (works for Claude Code, OpenCode, Cursor, Codex, dll):
+Install via the `skills` CLI (works with Claude Code, OpenCode, Cursor, Codex, etc.):
 
 ```bash
-# Install skill spesifik
+# Install a specific skill
 npx skills add https://github.com/Maeeveee/skills --skill postcss-px-viewport
 
-# Install semua skill dalam repo ini
+# Install all skills in this repo
 npx skills add https://github.com/Maeeveee/skills
 
-# Lihat daftar skill yang tersedia tanpa install
+# List available skills without installing
 npx skills add https://github.com/Maeeveee/skills --list
 ```
 
-Tambahan flag yang berguna: `-g` (install global, tersedia di semua project), `-a <agent>` (target agent spesifik), `-y` (skip prompt).
+Useful additional flags: `-g` (install globally, available in all projects), `-a <agent>` (target a specific agent), `-y` (skip prompts).
 
-Alternatifnya, tambahkan referensi ke `skills.json` di customization root project target Anda:
+Alternatively, add a reference to `skills.json` in the customization root of your target project:
 
 ```json
 {
@@ -39,13 +39,13 @@ Alternatifnya, tambahkan referensi ke `skills.json` di customization root projec
 }
 ```
 
-## Struktur Direktori
+## Directory Structure
 
 ```
 .agents/
 └── skills/
     └── postcss-px-viewport/
-        ├── SKILL.md          ← Instruksi lengkap untuk agen
-        ├── setup.md          ← Setup & konfigurasi one-time
-        └── README.md         ← Dokumentasi human-facing
+        ├── SKILL.md          ← Full instructions for the agent
+        ├── setup.md          ← One-time setup & configuration
+        └── README.md         ← Human-facing documentation
 ```
