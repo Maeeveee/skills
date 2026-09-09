@@ -59,7 +59,7 @@ export default {
       fontViewportUnit: 'vw',   // Specific unit for fonts
       selectorBlackList: [],    // Classes that are NOT converted (e.g., ['ignore-'])
       minPixelValue: 1,         // Values <= 1px stay fixed: hairline borders stay crisp 1px (see rule 4)
-      mediaQuery: true,         // MUST BE TRUE for Tailwind v4 (processes @layer). Safe for v3.
+      mediaQuery: true,         // MUST BE TRUE for Tailwind v4 (@layer). Set FALSE for SCSS Desktop-First (see rule 3)
       replace: true,
       landscape: false
     }
@@ -75,7 +75,9 @@ After configuring, **restart the dev server** (`Ctrl+C` → `npm run dev`).
 
 2. **`viewportWidth` must match the Figma frame width.** Frames at 1440 → `viewportWidth: 1440`; frames at 1920 → `viewportWidth: 1920`. Wrong value throws off every proportion.
 
-3. **`mediaQuery: true` is mandatory for Tailwind v4.** v4 uses Cascade Layers (`@layer`), treated internally as media queries by this plugin. Left `false` (the default), the plugin ignores ALL Tailwind CSS.
+3. **`mediaQuery: true` vs `mediaQuery: false`**:
+   - **For Tailwind v4**: `mediaQuery: true` is **mandatory** because v4 uses Cascade Layers (`@layer`), which the plugin treats internally as media queries. If left `false`, the plugin ignores all Tailwind CSS.
+   - **For SCSS / CSS Modules (Desktop-First)**: Set `mediaQuery: false` if you want all tablet and mobile media queries (`@media (max-width: 1024px)`) to **stay in fixed `px`**. Desktop styles written outside `@media` will convert to `vw`, while everything inside `@media` is untouched by the plugin.
 
 4. **Border radius must scale; 1px hairlines must not.** NEVER use `!border*` — it freezes `border-radius` in px, so on a 1280px screen the element shrinks to ~67% but the radius doesn't: everything looks *rounder* on laptops (and ≥2px borders look *bolder* by the same mechanism). Instead, combine:
    - `propList: ['*']` — `border-radius` and ≥2px border widths convert to `vw` and stay proportional to the element at every resolution.

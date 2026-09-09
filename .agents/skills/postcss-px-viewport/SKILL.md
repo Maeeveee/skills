@@ -108,6 +108,35 @@ rg -nP "(?<![\w-])(gap|gap-x|gap-y|space-x|space-y|p|px|py|pt|pb|pl|pr|m|mx|my|m
 - Built-in numeric scale at the desktop layer → look up the exact px value in Figma (or infer a sensible px value) and write it as arbitrary (`lg:gap-6` → `lg:gap-[24px]`).
 - Bare arbitrary px in a responsive project → move it behind `lg:` and give the base layer the closest built-in class (`p-[20px]` → `p-4 lg:p-[20px]`).
 
+## SCSS & CSS Modules Usage (Desktop-First Workflow)
+
+When writing styles in SCSS (`.scss`) or CSS Modules (`.module.scss`):
+
+1. **Configure `mediaQuery: false` in `postcss.config.js`**:
+   This instructs the plugin to skip all CSS rules wrapped inside `@media` blocks.
+2. **Desktop-First Pattern**:
+   - **Desktop layer (root)**: Write values straight from Figma as normal `px` (`width: 480px; padding: 32px; font-size: 20px;`). These automatically convert to `vw` at build-time.
+   - **Tablet / Mobile layer (`@media`)**: Wrap responsive overrides inside `@media (max-width: 1024px)` or `@media (max-width: 768px)`. Because `mediaQuery: false`, **all `px` values inside `@media` remain completely frozen in static `px`**, preventing mobile layouts and fonts from shrinking unnaturally.
+
+```scss
+// Component.module.scss
+.heroCard {
+  // Desktop: converts to vw (scales smoothly from 1920 to 1280)
+  width: 500px;
+  padding: 32px;
+  font-size: 20px;
+  border-radius: 16px;
+
+  // Tablet & Mobile: untouched by PostCSS (stays crisp static px)
+  @media (max-width: 1024px) {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+}
+```
+
 ## Per-Task Rules
 
 1. **No inline `px` styles for layout.** `style={{ width: '300px' }}` is never converted — PostCSS only processes `.css` files. Dynamic sizes: use the `pxToVw` helper (SETUP.md).

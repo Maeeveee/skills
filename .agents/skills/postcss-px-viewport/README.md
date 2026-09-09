@@ -57,12 +57,20 @@ Also invoke when the user reports bugs related to this technique: font size out 
    }
    ```
 
-3. Slicing directly from Figma (arbitrary values at `lg:`, default classes for default):
-   ```html
-   <div class="w-full p-4 text-base lg:w-[500px] lg:h-[300px] lg:text-[24px] lg:mt-[50px] lg:p-[20px]">
-     Pixel-perfect content
-   </div>
-   ```
+3. Slicing directly from Figma:
+   - **Tailwind**: arbitrary values at `lg:`, default classes for mobile:
+     ```html
+     <div class="w-full p-4 text-base lg:w-[500px] lg:h-[300px] lg:text-[24px] lg:mt-[50px] lg:p-[20px]">
+       Pixel-perfect content
+     </div>
+     ```
+   - **SCSS / CSS Modules (Desktop-First)**: set `mediaQuery: false`, write desktop styles at root, tablet/mobile inside `@media`:
+     ```scss
+     .card {
+       width: 500px; padding: 32px; // Desktop -> converts to vw
+       @media (max-width: 1024px) { width: 100%; padding: 16px; } // Tablet -> stays static px
+     }
+     ```
 
 ## See also
 
