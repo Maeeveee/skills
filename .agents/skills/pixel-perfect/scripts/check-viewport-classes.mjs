@@ -37,17 +37,17 @@ const IGNORE_DIRS = new Set([
 // Rule A: Desktop breakpoint (lg:, xl:, 2xl:) using built-in numeric/named scales (resolves to rem, won't scale).
 // - Excludes 0 values: lg:p-0, lg:top-0, lg:inset-0 (0rem == 0px, never breaks).
 // - Excludes fractions: lg:w-1/2, lg:w-2/3.
-// - Catches numeric scale: lg:p-4, lg:gap-6, lg:w-96, lg:text-base, lg:text-2xl.
+// - Catches numeric & decimal scales: lg:p-4, lg:h-0.5, lg:p-0.5, lg:gap-6, lg:w-96, lg:text-base, lg:text-2xl.
 // - Catches named sizing scale: lg:max-w-md, lg:min-w-sm, lg:max-w-lg (resolves to rem).
 // - Catches border scale: lg:border-2, lg:border-4, lg:border-t-2.
 // - Catches border radius scale: lg:rounded-lg, lg:rounded-md (excludes rounded-none, rounded-full).
-const RULE_A_REGEX = /(?:^|[\s"':`])([a-zA-Z0-9_:-]*(?:lg|xl|2xl):[a-zA-Z0-9_:-]*(?:(?:gap|gap-x|gap-y|space-x|space-y|p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|w|min-w|min-h|max-w|h|size|basis|top|right|bottom|left|inset|leading|tracking)-(?!(?:0(?![0-9])|\d+\/))\d+(?:\.\d+)?|(?:max-w|min-w|max-h|min-h)-(?:xs|sm|md|lg|xl|\d+xl|prose)|text-(?:xs|sm|base|lg|xl|\d+xl)|rounded-(?:sm|md|lg|xl|2xl|3xl)|border-(?:[248]|t-[248]|r-[248]|b-[248]|l-[248]|x-[248]|y-[248])))(?=[\s"':`]|$)/g;
+const RULE_A_REGEX = /(?:^|[\s"':`])([a-zA-Z0-9_:-]*(?:lg|xl|2xl):[a-zA-Z0-9_:-]*(?:(?:gap|gap-x|gap-y|space-x|space-y|p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|w|min-w|min-h|max-w|h|size|basis|top|right|bottom|left|inset|leading|tracking)-(?!(?:0(?![0-9.])|\d+\/))\d+(?:\.\d+)?|(?:max-w|min-w|max-h|min-h)-(?:xs|sm|md|lg|xl|\d+xl|prose)|text-(?:xs|sm|base|lg|xl|\d+xl)|rounded-(?:sm|md|lg|xl|2xl|3xl)|border-(?:[248]|t-[248]|r-[248]|b-[248]|l-[248]|x-[248]|y-[248])))(?=[\s"':`]|$)/g;
 
 // Rule B: Arbitrary px outside desktop layer (leaks desktop sizing into mobile).
 const ARBITRARY_PX_REGEX = /(?:^|[\s"':`])([a-zA-Z0-9_:-]*(?:gap|gap-x|gap-y|space-x|space-y|p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|w|h|min-w|min-h|max-w|size|basis|text|leading|tracking|top|right|bottom|left|inset|rounded)-\[\d+(?:\.\d+)?px\])(?=[\s"':`]|$)/g;
 
 // Desktop-Only Mode: Any built-in numeric/named scale anywhere (excluding 0 and fractions).
-const DESKTOP_ONLY_BUILTIN = /(?:^|[\s"':`])([a-zA-Z0-9_:-]*(?:(?:gap|gap-x|gap-y|space-x|space-y|p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|w|min-w|min-h|max-w|h|size|basis|top|right|bottom|left|inset|leading|tracking)-(?!(?:0(?![0-9])|\d+\/))\d+(?:\.\d+)?|(?:max-w|min-w|max-h|min-h)-(?:xs|sm|md|lg|xl|\d+xl|prose)|text-(?:xs|sm|base|lg|xl|\d+xl)|rounded-(?:sm|md|lg|xl|2xl|3xl)|border-(?:[248]|t-[248]|r-[248]|b-[248]|l-[248]|x-[248]|y-[248])))(?=[\s"':`]|$)/g;
+const DESKTOP_ONLY_BUILTIN = /(?:^|[\s"':`])([a-zA-Z0-9_:-]*(?:(?:gap|gap-x|gap-y|space-x|space-y|p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|w|min-w|min-h|max-w|h|size|basis|top|right|bottom|left|inset|leading|tracking)-(?!(?:0(?![0-9.])|\d+\/))\d+(?:\.\d+)?|(?:max-w|min-w|max-h|min-h)-(?:xs|sm|md|lg|xl|\d+xl|prose)|text-(?:xs|sm|base|lg|xl|\d+xl)|rounded-(?:sm|md|lg|xl|2xl|3xl)|border-(?:[248]|t-[248]|r-[248]|b-[248]|l-[248]|x-[248]|y-[248])))(?=[\s"':`]|$)/g;
 
 // ANSI colors
 const red = (t) => `\x1b[31m${t}\x1b[0m`;
@@ -59,14 +59,19 @@ const bold = (t) => `\x1b[1m${t}\x1b[0m`;
 function getFiles() {
   if (isStagedOnly) {
     try {
-      const stdout = execSync('git diff --cached --name-only --diff-filter=ACMR', { encoding: 'utf8' });
+      // Use core.quotepath=off so non-ASCII paths (e.g. src/café/x.tsx) are not quoted
+      const stdout = execFileSync(
+        'git',
+        ['-c', 'core.quotepath=off', 'diff', '--cached', '--name-only', '--diff-filter=ACMR'],
+        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+      );
       return stdout
         .split(/\r?\n/)
         .map((f) => f.trim())
         .filter((f) => f && TARGET_EXTENSIONS.has(path.extname(f)));
     } catch (err) {
       console.error(red('✖ Failed to retrieve staged files from Git:'));
-      console.error(err.message);
+      console.error(err.stderr ? err.stderr.toString().trim() : err.message);
       process.exit(1);
     }
   }

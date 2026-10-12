@@ -79,7 +79,7 @@ After configuring, **restart the dev server** (`Ctrl+C` → `npm run dev`).
 3. **`mediaQuery: true` vs `mediaQuery: false`**:
    - **For Tailwind (all versions)**: `mediaQuery: true` is **mandatory**. Tailwind compiles all breakpoint variants (`lg:`, `xl:`, `2xl:`) into CSS `@media (min-width: ...)` rules. If `mediaQuery` is `false`, PostCSS skips all rules wrapped in `@media`, so **none of the desktop classes (`lg:w-[500px]`, etc.) will ever convert to `vw`**. In Tailwind v4, Cascade Layers (`@layer`) are also processed through this mechanism.
    - **For Pure SCSS / CSS Modules (Desktop-First projects)**: Set `mediaQuery: false` if writing plain SCSS without Tailwind, so that tablet/mobile overrides inside `@media (max-width: 1024px)` stay in static `px`.
-   - **For Hybrid projects (Tailwind + SCSS)**: Keep `mediaQuery: true` so Tailwind breakpoint classes convert. For SCSS components that must stay fixed on mobile, isolate them using the `ignore-` prefix (Rule 7) instead of disabling `mediaQuery` globally.
+   - **For Hybrid projects (Tailwind + SCSS)**: Keep `mediaQuery: true` so Tailwind breakpoint classes convert. For SCSS overrides inside `@media` that must stay fixed on mobile, write them using `rem` units (e.g. `padding: 1rem; font-size: 1rem;`) so they never shrink.
 
 4. **Border radius must scale; 1px hairlines must not.** NEVER use `!border*` — it freezes `border-radius` in px, so on a 1280px screen the element shrinks to ~67% but the radius doesn't: everything looks *rounder* on laptops (and ≥2px borders look *bolder* by the same mechanism). Instead, combine:
    - `propList: ['*']` — `border-radius` and ≥2px border widths convert to `vw` and stay proportional to the element at every resolution.

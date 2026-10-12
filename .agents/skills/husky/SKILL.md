@@ -124,9 +124,13 @@ Apply when formatting or linting staged files prior to commit.
 > 1. The project uses `postcss-px-to-viewport-8-plugin` (inspect `postcss.config.*` or `package.json`), OR
 > 2. The user explicitly requests viewport/scaling/arbitrary-class validation.
 > Do NOT install on unrelated projects.
+>
+> **Finding the validator script**:
+> - If the `pixel-perfect` skill is present in your workspace, copy `scripts/check-viewport-classes.mjs` from that skill's directory into the project's `scripts/check-viewport-classes.mjs`.
+> - If `pixel-perfect` is not yet installed in your workspace, install it first via `npx skills add https://github.com/Maeeveee/skills --skill pixel-perfect` (or skip Gate C if the project does not use px-to-viewport scaling).
 
 1. **Copy validator script**:
-   Copy the validator from the `pixel-perfect` skill directory (`<pixel-perfect-skill-path>/scripts/check-viewport-classes.mjs`) into the target project's `scripts/check-viewport-classes.mjs`.
+   Copy `scripts/check-viewport-classes.mjs` from the `pixel-perfect` skill into the target project's `scripts/check-viewport-classes.mjs`.
 
 2. **Add to `.husky/pre-commit`**:
    ```bash

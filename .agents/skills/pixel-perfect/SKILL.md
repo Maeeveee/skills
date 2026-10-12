@@ -126,7 +126,7 @@ When writing styles in SCSS (`.scss`) or CSS Modules (`.module.scss`):
    - **Desktop layer (root)**: Write values straight from Figma as normal `px` (`width: 480px; padding: 32px; font-size: 20px;`). These automatically convert to `vw` at build-time.
    - **Tablet / Mobile layer (`@media`)**: Wrap responsive overrides inside `@media (max-width: 1024px)` or `@media (max-width: 768px)`. With `mediaQuery: false`, **all `px` values inside `@media` remain frozen in static `px`**, preventing mobile layouts and fonts from shrinking unnaturally.
 3. **In Hybrid projects (Tailwind + SCSS)**:
-   Keep `mediaQuery: true`. Write desktop styles at root in `px` (they convert to `vw`). For mobile styles that must not scale, use `rem` units or separate them into stylesheets excluded from the PostCSS viewport pipeline.
+   Keep `mediaQuery: true`. Write desktop styles at root in `px` (they convert to `vw`). For mobile/tablet overrides inside `@media`, **write them using `rem` units** (e.g. `padding: 1rem; font-size: 1rem;`) so they stay fixed and never shrink.
 
 ```scss
 // Component.module.scss (pure SCSS with mediaQuery: false)
