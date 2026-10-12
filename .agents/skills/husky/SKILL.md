@@ -6,33 +6,61 @@ description: "Set up and configure Husky git hooks, Conventional Commits (commit
 # Husky Git Hooks & Quality Gates
 
 Enforce git standards before commits reach repository history:
-1. **`commit-msg` gate**: Enforces **Conventional Commits** (`feat:`, `fix:`, `chore:`, etc.) via `@commitlint`.
-2. **`pre-commit` gate (Formatting & Linting)**: Runs `lint-staged` with ESLint/Prettier/Biome.
-3. **`pre-commit` gate (Pixel-Perfect Scaling Bridge)**: Rejects illegal Tailwind classes (`lg:p-4`, bare `p-[20px]`) when the project uses the `pixel-perfect` technique.
+1. **Core Setup**: Install Husky v9 and prepare clean hooks.
+2. **`commit-msg` gate**: Enforce **Conventional Commits** (`feat:`, `fix:`, `chore:`, etc.) via `@commitlint`.
+3. **`pre-commit` gate (Formatting & Linting)**: Run `lint-staged` adaptively (Biome, ESLint, Prettier).
+4. **`pre-commit` gate (Pixel-Perfect Bridge)**: Enforce arbitrary px rules when `pixel-perfect` is used.
+
+> [!CAUTION]
+> **No Bypass for AI**: The AI agent is STRICTLY FORBIDDEN from running `git commit --no-verify`. If a hook fails, inspect the output and fix the underlying code or commit message. Only the human user may decide to bypass git gates.
 
 ---
 
-## Package Manager Detection
+## 1. Package Manager & Tooling Detection
 
-Detect package manager from lockfile before running any command:
-- `pnpm-lock.yaml` → `pnpm add -D <pkg>` / `pnpm exec husky init`
-- `yarn.lock` → `yarn add -D <pkg>` / `yarn dlx husky init`
-- `bun.lockb` / `bun.lock` → `bun add -d <pkg>` / `bunx husky init`
-- `package-lock.json` or fallback → `npm install -D <pkg>` / `npx husky init`
+Detect the package manager and linter from project files before running commands:
+
+| Lockfile | Install Command | Exec Command |
+|---|---|---|
+| `pnpm-lock.yaml` | `pnpm add -D <pkg>` | `pnpm exec <cmd>` |
+| `yarn.lock` | `yarn add -D <pkg>` | `yarn dlx <cmd>` |
+| `bun.lockb` / `bun.lock` | `bun add -d <pkg>` | `bunx <cmd>` |
+| `package-lock.json` / fallback | `npm install -D <pkg>` | `npx <cmd>` |
+
+Also check code formatting tooling:
+- `biome.json` present → use Biome.
+- `eslint.config.*` / `.eslintrc*` / `.prettierrc*` present → use ESLint + Prettier.
 
 ---
 
-## Modular Execution Scenarios
+## 2. Core Husky Setup
 
-Analyze user intent and existing repository setup to apply the relevant gate(s):
+Run Husky initialization:
 
-### Gate 1: Conventional Commits (`commit-msg`)
+```bash
+# 1. Install husky
+<install-cmd> husky
 
-Apply when the user requests commit message conventions, commitlint, or standard commit formatting.
+# 2. Initialize husky (creates .husky/ and adds prepare script to package.json)
+<exec-cmd> husky init
+```
+
+> [!IMPORTANT]
+> `husky init` automatically writes `npm test` into `.husky/pre-commit` by default. **Always replace or clear the `npm test` line** with your desired pre-commit commands so commits do not run test suites unexpectedly.
+
+---
+
+## 3. Modular Gates
+
+Apply only the gate(s) requested or relevant to the project:
+
+### Gate A: Conventional Commits (`commit-msg`)
+
+Apply when the user asks for commitlint, conventional commits, or standardized commit messages.
 
 1. **Install dependencies**:
    ```bash
-   npm install -D @commitlint/cli @commitlint/config-conventional
+   <install-cmd> @commitlint/cli @commitlint/config-conventional
    ```
 
 2. **Create `commitlint.config.mjs`** at project root:
@@ -40,12 +68,7 @@ Apply when the user requests commit message conventions, commitlint, or standard
    export default {
      extends: ['@commitlint/config-conventional'],
      rules: {
-       'type-enum': [
-         2,
-         'always',
-         ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'build', 'ci', 'chore', 'revert']
-       ],
-       'subject-case': [0] // Flexible casing for technical terms / non-English
+       'subject-case': [0] // Allow flexible casing for technical terms / non-English
      }
    };
    ```
@@ -57,20 +80,31 @@ Apply when the user requests commit message conventions, commitlint, or standard
 
 ---
 
-### Gate 2: Code Quality & Staged Formatting (`pre-commit`)
+### Gate B: Code Quality & Formatting (`pre-commit`)
 
 Apply when formatting or linting staged files prior to commit.
 
 1. **Install `lint-staged`**:
    ```bash
-   npm install -D lint-staged
+   <install-cmd> lint-staged
    ```
 
-2. **Add `lint-staged` to `package.json`**:
+2. **Configure `package.json` adaptively**:
+
+   **If using Biome:**
    ```json
    {
      "lint-staged": {
-       "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
+       "*.{js,ts,jsx,tsx,json}": ["biome check --write --no-errors-on-unmatched"]
+     }
+   }
+   ```
+
+   **If using ESLint / Prettier:**
+   ```json
+   {
+     "lint-staged": {
+       "*.{js,jsx,ts,tsx,vue,astro,svelte}": ["eslint --fix", "prettier --write"],
        "*.{json,css,scss,md}": ["prettier --write"]
      }
    }
@@ -83,7 +117,7 @@ Apply when formatting or linting staged files prior to commit.
 
 ---
 
-### Gate 3: Pixel-Perfect Viewport Bridge (`pre-commit`)
+### Gate C: Pixel-Perfect Viewport Bridge (`pre-commit`)
 
 > [!IMPORTANT]
 > **Conditional Activation**: ONLY install this bridge if:
@@ -92,7 +126,7 @@ Apply when formatting or linting staged files prior to commit.
 > Do NOT install on unrelated projects.
 
 1. **Copy validator script**:
-   Copy the template from this skill's `templates/check-viewport-classes.mjs` to the target project's `scripts/check-viewport-classes.mjs`.
+   Copy the validator from `.agents/skills/pixel-perfect/scripts/check-viewport-classes.mjs` into the project's `scripts/check-viewport-classes.mjs`.
 
 2. **Add to `.husky/pre-commit`**:
    ```bash
@@ -113,47 +147,37 @@ Apply when formatting or linting staged files prior to commit.
 
 ---
 
-## Full Stack Setup (Orchestrated `.husky/pre-commit`)
+## 4. Full Orchestrated Example
 
-When setting up the complete pipeline, combine gates cleanly:
+When setting up the full pipeline, `.husky/pre-commit` should look like this (replacing the default `npm test`):
 
 ```bash
 #!/bin/sh
 
-# 1. Run staged formatting & linting
+# 1. Staged files formatting and linting
 npx lint-staged
 
-# 2. Check pixel-perfect Tailwind classes (if using pixel-perfect technique)
+# 2. Viewport scaling validation (if script exists)
 if [ -f "scripts/check-viewport-classes.mjs" ]; then
   node scripts/check-viewport-classes.mjs --staged
 fi
 ```
 
-And ensure `package.json` has:
-```json
-{
-  "scripts": {
-    "prepare": "husky"
-  }
-}
+And `.husky/commit-msg`:
+```bash
+npx --no -- commitlint --edit "$1"
 ```
 
 ---
 
-## Verification & Self-Check
+## 5. Verification Checklist
 
-Verify newly installed hooks by testing valid and invalid states:
+Always test the gates after installation:
 
-1. **Test `commit-msg`**:
-   - `git commit -m "bad message"` → ❌ Aborted: *type may not be empty*.
-   - `git commit -m "feat: valid message"` → ✅ Accepted.
+1. **Verify Commit Message Gate**:
+   - `git commit -m "bad message"` → Must fail with *type may not be empty*.
+   - `git commit -m "feat: add user authentication"` → Must succeed.
 
-2. **Test `pre-commit` Viewport Check** (if active):
-   - Stage a file containing `lg:p-4` or bare `p-[20px]`.
-   - `git commit -m "test: verify"` → ❌ Aborted: displays line, token, and fix suggestion.
-   - Fix to `lg:p-[16px]` and built-in mobile classes → ✅ Accepted.
-
-3. **Emergency Bypass**:
-   ```bash
-   git commit -m "hotfix: urgent change" --no-verify
-   ```
+2. **Verify Pre-commit Gate** (if Viewport Bridge is active):
+   - Stage a file with `lg:p-4` → Commit must be blocked with fix suggestion.
+   - Stage a file with `lg:p-[16px]` → Commit must pass.

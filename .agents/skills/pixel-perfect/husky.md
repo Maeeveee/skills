@@ -24,11 +24,11 @@ Once the `husky` skill is available (or if your project already uses Husky):
 
 ### 1. Add the Viewport Checker Script
 
-Copy the zero-dependency checker template from the `husky` skill into your project's `scripts/` directory:
+Copy the zero-dependency validator from this skill into your project's `scripts/` directory:
 
 ```bash
 # Path in skills repo:
-# .agents/skills/husky/templates/check-viewport-classes.mjs -> scripts/check-viewport-classes.mjs
+# .agents/skills/pixel-perfect/scripts/check-viewport-classes.mjs -> scripts/check-viewport-classes.mjs
 ```
 
 ### 2. Configure `.husky/pre-commit`

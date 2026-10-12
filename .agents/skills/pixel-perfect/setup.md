@@ -77,8 +77,9 @@ After configuring, **restart the dev server** (`Ctrl+C` → `npm run dev`).
 2. **`viewportWidth` must match the Figma frame width.** Frames at 1440 → `viewportWidth: 1440`; frames at 1920 → `viewportWidth: 1920`. Wrong value throws off every proportion.
 
 3. **`mediaQuery: true` vs `mediaQuery: false`**:
-   - **For Tailwind v4**: `mediaQuery: true` is **mandatory** because v4 uses Cascade Layers (`@layer`), which the plugin treats internally as media queries. If left `false`, the plugin ignores all Tailwind CSS.
-   - **For SCSS / CSS Modules (Desktop-First)**: Set `mediaQuery: false` if you want all tablet and mobile media queries (`@media (max-width: 1024px)`) to **stay in fixed `px`**. Desktop styles written outside `@media` will convert to `vw`, while everything inside `@media` is untouched by the plugin.
+   - **For Tailwind (all versions)**: `mediaQuery: true` is **mandatory**. Tailwind compiles all breakpoint variants (`lg:`, `xl:`, `2xl:`) into CSS `@media (min-width: ...)` rules. If `mediaQuery` is `false`, PostCSS skips all rules wrapped in `@media`, so **none of the desktop classes (`lg:w-[500px]`, etc.) will ever convert to `vw`**. In Tailwind v4, Cascade Layers (`@layer`) are also processed through this mechanism.
+   - **For Pure SCSS / CSS Modules (Desktop-First projects)**: Set `mediaQuery: false` if writing plain SCSS without Tailwind, so that tablet/mobile overrides inside `@media (max-width: 1024px)` stay in static `px`.
+   - **For Hybrid projects (Tailwind + SCSS)**: Keep `mediaQuery: true` so Tailwind breakpoint classes convert. For SCSS components that must stay fixed on mobile, isolate them using the `ignore-` prefix (Rule 7) instead of disabling `mediaQuery` globally.
 
 4. **Border radius must scale; 1px hairlines must not.** NEVER use `!border*` — it freezes `border-radius` in px, so on a 1280px screen the element shrinks to ~67% but the radius doesn't: everything looks *rounder* on laptops (and ≥2px borders look *bolder* by the same mechanism). Instead, combine:
    - `propList: ['*']` — `border-radius` and ≥2px border widths convert to `vw` and stay proportional to the element at every resolution.
@@ -102,7 +103,8 @@ After configuring, **restart the dev server** (`Ctrl+C` → `npm run dev`).
    selectorBlackList: ['ignore-']
    ```
    ```html
-   <div class="ignore-icon w-[24px] h-[24px]">...</div>  <!-- Stays 24px, never converted -->
+   <!-- Stays 24px, never converted; exempted from Rule B validator -->
+   <div class="ignore-icon w-[24px] h-[24px]">...</div>
    ```
 
 8. **Dynamic inline styles need a manual helper.** PostCSS never touches inline styles:

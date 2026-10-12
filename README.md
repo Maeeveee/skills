@@ -48,12 +48,13 @@ Alternatively, add a reference to `skills.json` in the customization root of you
 └── skills/
     ├── husky/
     │   ├── SKILL.md          ← Full instructions for the agent
-    │   ├── setup.md          ← Configuration reference
-    │   ├── README.md         ← Human-facing documentation
-    │   └── templates/        ← Reusable validator script templates
+    │   ├── setup.md          ← Troubleshooting & platform reference
+    │   └── README.md         ← Human-facing documentation
     └── pixel-perfect/
         ├── SKILL.md          ← Full instructions for the agent
         ├── setup.md          ← One-time setup & configuration
-        ├── husky.md          ← Viewport class pre-commit hook integration
-        └── README.md         ← Human-facing documentation
+        ├── husky.md          ← Pre-commit hook integration note
+        ├── README.md         ← Human-facing documentation
+        └── scripts/          ← Single source of truth validator
+            └── check-viewport-classes.mjs
 ```

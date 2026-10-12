@@ -70,7 +70,7 @@ git commit -m "feat: add hero section"
 
 ## Connecting with `pixel-perfect`
 
-If your project uses the `pixel-perfect` skill, this Husky skill automatically adds `scripts/check-viewport-classes.mjs`.
+If your project uses the `pixel-perfect` skill, copy `check-viewport-classes.mjs` from `.agents/skills/pixel-perfect/scripts/` to `scripts/`:
 
 - ❌ Commits with `lg:p-4` or `lg:text-base` are blocked with an immediate suggestion: replace with `lg:p-[16px]`.
 - ❌ Commits with `p-[20px]` on mobile are blocked: move behind `lg:` or use standard `p-4`.
@@ -79,5 +79,5 @@ If your project uses the `pixel-perfect` skill, this Husky skill automatically a
 ## See also
 
 - [`SKILL.md`](./SKILL.md) — complete agent instructions for Husky initialization, commitlint, and custom hooks
-- [`setup.md`](./setup.md) — developer reference guide and copy-paste configuration files
+- [`setup.md`](./setup.md) — troubleshooting, platform quirks (Windows/Linux), and permissions
 - [`../pixel-perfect/`](../pixel-perfect/) — Pixel-perfect responsive scaling technique (postcss-px-to-viewport)
