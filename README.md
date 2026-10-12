@@ -6,7 +6,8 @@ A collection of AI agent skills (Gemini / Antigravity) that extend the agent's a
 
 | Skill | Description | Technique |
 |---|---|---|
-| [postcss-px-viewport](.agents/skills/postcss-px-viewport/) | Automatic `px` → `vw` conversion at build-time — safe for Framer Motion, SEO, and accessibility | PostCSS Plugin |
+| [husky](.agents/skills/husky/) | Git hooks automation: Conventional Commits (`commitlint`), `lint-staged`, & arbitrary class pre-commit validation | Husky & Git Hooks |
+| [pixel-perfect](.agents/skills/pixel-perfect/) | Automatic `px` → `vw` conversion at build-time — safe for Framer Motion, SEO, and accessibility | PostCSS Plugin |
 
 ## How to Use
 
@@ -18,7 +19,8 @@ Install via the `skills` CLI (works with Claude Code, OpenCode, Cursor, Codex, e
 
 ```bash
 # Install a specific skill
-npx skills add https://github.com/Maeeveee/skills --skill postcss-px-viewport
+npx skills add https://github.com/Maeeveee/skills --skill husky
+npx skills add https://github.com/Maeeveee/skills --skill pixel-perfect
 
 # Install all skills in this repo
 npx skills add https://github.com/Maeeveee/skills
@@ -44,8 +46,14 @@ Alternatively, add a reference to `skills.json` in the customization root of you
 ```
 .agents/
 └── skills/
-    └── postcss-px-viewport/
+    ├── husky/
+    │   ├── SKILL.md          ← Full instructions for the agent
+    │   ├── setup.md          ← Configuration reference
+    │   ├── README.md         ← Human-facing documentation
+    │   └── templates/        ← Reusable validator script templates
+    └── pixel-perfect/
         ├── SKILL.md          ← Full instructions for the agent
         ├── setup.md          ← One-time setup & configuration
+        ├── husky.md          ← Viewport class pre-commit hook integration
         └── README.md         ← Human-facing documentation
 ```

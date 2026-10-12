@@ -1,4 +1,4 @@
-# Setup & Configuration Reference — postcss-px-viewport
+# Setup & Configuration Reference — pixel-perfect
 
 Companion to SKILL.md. Read this file ONLY when initializing the technique in a project for the first time (or when debugging the conversion pipeline). The per-task Tailwind class rules live in SKILL.md.
 
@@ -20,6 +20,7 @@ Use the fork compatible with PostCSS 8:
 npm install -D postcss-px-to-viewport-8-plugin
 # or: yarn add -D postcss-px-to-viewport-8-plugin
 # or: pnpm add -D postcss-px-to-viewport-8-plugin
+# or: bun add -d postcss-px-to-viewport-8-plugin
 ```
 
 ## Turbopack vs Webpack (Next.js only)
@@ -122,7 +123,7 @@ After configuring, **restart the dev server** (`Ctrl+C` → `npm run dev`).
 
 Before considering implementation complete:
 
-- **Class audit**: run the Self-Check greps in SKILL.md — every hit must be fixed or explicitly justified.
+- **Class audit**: run the Self-Check greps in SKILL.md — every hit must be fixed or explicitly justified. To enforce this automatically on every commit, see [husky.md](husky.md).
 - **1920x1080**: design must be 1:1 identical to Figma; no element forcefully enlarged.
 - **1366x768 & 1280x720**: UI shrinks proportionally and consistently; check for sub-pixel gaps in grids/tables. Spacing that did NOT shrink = frozen `rem` class (`lg:gap-6`) → convert to arbitrary px.
 - **Border radius & borders at 1280**: radius must look proportionally the same as at 1920 (not rounder); ≥2px borders must shrink with the layout (not look bolder); 1px hairlines must stay crisp (not blurry).

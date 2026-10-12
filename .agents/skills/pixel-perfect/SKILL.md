@@ -1,5 +1,5 @@
 ---
-name: postcss-px-viewport
+name: pixel-perfect
 description: 'Use the postcss-px-to-viewport technique to make UI designs pixel-perfect and proportional across all desktop screens. Automatically converts static px to vw (viewport width) at build-time. Use this skill if the target is a pixel-perfect UI that is safe for SEO, Accessibility, does not break position: fixed, and supports animation libraries like Framer Motion.'
 ---
 
@@ -107,6 +107,8 @@ rg -nP "(?<![\w-])(gap|gap-x|gap-y|space-x|space-y|p|px|py|pt|pb|pl|pr|m|mx|my|m
 **How to fix hits:**
 - Built-in numeric scale at the desktop layer → look up the exact px value in Figma (or infer a sensible px value) and write it as arbitrary (`lg:gap-6` → `lg:gap-[24px]`).
 - Bare arbitrary px in a responsive project → move it behind `lg:` and give the base layer the closest built-in class (`p-[20px]` → `p-4 lg:p-[20px]`).
+
+> **Automated pre-commit checks**: To automatically prevent these violations from being committed, set up Husky following [husky.md](husky.md).
 
 ## SCSS & CSS Modules Usage (Desktop-First Workflow)
 
