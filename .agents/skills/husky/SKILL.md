@@ -23,7 +23,7 @@ Detect the package manager and linter from project files before running commands
 | Lockfile | Install Command | Exec Command |
 |---|---|---|
 | `pnpm-lock.yaml` | `pnpm add -D <pkg>` | `pnpm exec <cmd>` |
-| `yarn.lock` | `yarn add -D <pkg>` | `yarn dlx <cmd>` |
+| `yarn.lock` | `yarn add -D <pkg>` | `yarn dlx <cmd>` (v2+) or `npx <cmd>` (v1) |
 | `bun.lockb` / `bun.lock` | `bun add -d <pkg>` | `bunx <cmd>` |
 | `package-lock.json` / fallback | `npm install -D <pkg>` | `npx <cmd>` |
 
@@ -126,7 +126,7 @@ Apply when formatting or linting staged files prior to commit.
 > Do NOT install on unrelated projects.
 
 1. **Copy validator script**:
-   Copy the validator from `.agents/skills/pixel-perfect/scripts/check-viewport-classes.mjs` into the project's `scripts/check-viewport-classes.mjs`.
+   Copy the validator from the `pixel-perfect` skill directory (`<pixel-perfect-skill-path>/scripts/check-viewport-classes.mjs`) into the target project's `scripts/check-viewport-classes.mjs`.
 
 2. **Add to `.husky/pre-commit`**:
    ```bash

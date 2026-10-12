@@ -98,14 +98,26 @@ After configuring, **restart the dev server** (`Ctrl+C` → `npm run dev`).
 
 6. **Do not exclude `node_modules`.** By default, external library CSS also converts so third-party components scale with the page. If a specific library element breaks, isolate it via `selectorBlackList` — never `exclude: [/node_modules/]`, and never exclude the main Tailwind CSS file (e.g., `globals.css`).
 
-7. **`selectorBlackList` for non-shrinking elements.** For elements that must keep an absolute size on every screen (small icons, separators), register a prefix and use it:
-   ```javascript
-   selectorBlackList: ['ignore-']
-   ```
-   ```html
-   <!-- Stays 24px, never converted; exempted from Rule B validator -->
-   <div class="ignore-icon w-[24px] h-[24px]">...</div>
-   ```
+7. **Non-shrinking elements (icons, fixed separators).**
+   `selectorBlackList` in PostCSS matches against **CSS selectors in compiled stylesheets**, NOT HTML class attributes. Writing `<div class="ignore-icon w-[24px]">` compiles to `.w-\[24px\] { width: 24px; }`, which does **not** match `selectorBlackList: ['ignore-']` and will still convert to `vw`!
+
+   To keep an element at a fixed pixel size on all screens:
+   - **Tailwind utility approach (recommended)**: Use arbitrary `rem` (`1.5rem = 24px`). PostCSS only converts `px`, leaving `rem` untouched:
+     ```html
+     <div class="w-[1.5rem] h-[1.5rem]">...</div>
+     ```
+   - **Custom CSS with `selectorBlackList`**: Define a custom class so the CSS selector itself contains the blacklisted prefix:
+     ```javascript
+     selectorBlackList: ['ignore-']
+     ```
+     ```css
+     /* globals.css: selector contains 'ignore-', so PostCSS leaves px untouched */
+     .ignore-icon {
+       width: 24px;
+       height: 24px;
+     }
+     ```
+   - **Inline styles**: `style={{ width: 24, height: 24 }}` (PostCSS only inspects stylesheet files).
 
 8. **Dynamic inline styles need a manual helper.** PostCSS never touches inline styles:
    ```typescript

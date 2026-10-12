@@ -27,8 +27,8 @@ Once the `husky` skill is available (or if your project already uses Husky):
 Copy the zero-dependency validator from this skill into your project's `scripts/` directory:
 
 ```bash
-# Path in skills repo:
-# .agents/skills/pixel-perfect/scripts/check-viewport-classes.mjs -> scripts/check-viewport-classes.mjs
+# Path relative to this skill:
+# <skill-path>/scripts/check-viewport-classes.mjs -> scripts/check-viewport-classes.mjs
 ```
 
 ### 2. Configure `.husky/pre-commit`
